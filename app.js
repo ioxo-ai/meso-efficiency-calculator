@@ -15,7 +15,12 @@ const DEFAULTS = {
   bundleCashCost: 10000,
   bundleMaplePoint: 10000,
   elixirCount: 100,
-  elixirMesoEach: 18500
+  elixirMesoEach: 18500,
+  mvpSpendKrw: 300000,
+  mvpRecoveredEok: 0,
+  mvpDirectBenefitEok: 0,
+  mvpHoursSaved: 0,
+  mvpMesoPerHourEok: 0
 };
 
 const inputs = Object.fromEntries(
@@ -26,6 +31,11 @@ const resetButton = document.querySelector("#resetButton");
 const routeList = document.querySelector("#routeList");
 const calculationNotes = document.querySelector("#calculationNotes");
 const updatedLabel = document.querySelector("#updatedLabel");
+const mvpSpendMeso = document.querySelector("#mvpSpendMeso");
+const mvpBenefitMeso = document.querySelector("#mvpBenefitMeso");
+const mvpNetMeso = document.querySelector("#mvpNetMeso");
+const mvpOffsetRate = document.querySelector("#mvpOffsetRate");
+const mvpFormula = document.querySelector("#mvpFormula");
 
 function toNumber(value, fallback) {
   const next = Number(value);
@@ -74,6 +84,11 @@ function getConfig() {
   config.bundleMaplePoint = Math.max(0, config.bundleMaplePoint);
   config.elixirCount = Math.max(0, config.elixirCount);
   config.elixirMesoEach = Math.max(0, config.elixirMesoEach);
+  config.mvpSpendKrw = Math.max(0, config.mvpSpendKrw);
+  config.mvpRecoveredEok = Math.max(0, config.mvpRecoveredEok);
+  config.mvpDirectBenefitEok = Math.max(0, config.mvpDirectBenefitEok);
+  config.mvpHoursSaved = Math.max(0, config.mvpHoursSaved);
+  config.mvpMesoPerHourEok = Math.max(0, config.mvpMesoPerHourEok);
 
   return config;
 }
@@ -173,13 +188,18 @@ function formatPercent(value) {
   return `${value.toLocaleString("ko-KR", { maximumFractionDigits: 1 })}%`;
 }
 
+function formatMesoPerWon(value) {
+  return `${Math.round(value).toLocaleString("ko-KR")}메소/원`;
+}
+
 function formatEok(meso) {
   const eok = meso / HUNDRED_MESO;
-  const digits = eok >= 100 ? 1 : eok >= 10 ? 2 : 3;
+  const absEok = Math.abs(eok);
+  const digits = absEok >= 100 ? 1 : absEok >= 10 ? 2 : 3;
 
   return `${eok.toLocaleString("ko-KR", {
     maximumFractionDigits: digits,
-    minimumFractionDigits: eok < 1 ? 3 : 0
+    minimumFractionDigits: absEok > 0 && absEok < 1 ? 3 : 0
   })}억`;
 }
 
@@ -277,11 +297,33 @@ function renderNotes(routes, config) {
   }
 }
 
+function renderMvpValue(routes, config) {
+  const best = routes[0];
+  const spendMeso = config.mvpSpendKrw * best.mesoPerKrw;
+  const recoveredMeso = config.mvpRecoveredEok * HUNDRED_MESO;
+  const directBenefitMeso = config.mvpDirectBenefitEok * HUNDRED_MESO;
+  const timeBenefitMeso = config.mvpHoursSaved * config.mvpMesoPerHourEok * HUNDRED_MESO;
+  const totalBenefitMeso = directBenefitMeso + timeBenefitMeso;
+  const baseCostMeso = spendMeso - recoveredMeso;
+  const netCostMeso = baseCostMeso - totalBenefitMeso;
+  const offsetRate = baseCostMeso > 0 ? (totalBenefitMeso / baseCostMeso) * 100 : 0;
+  const netCostKrw = best.mesoPerKrw > 0 ? netCostMeso / best.mesoPerKrw : 0;
+
+  mvpSpendMeso.textContent = formatEok(spendMeso);
+  mvpBenefitMeso.textContent = formatEok(totalBenefitMeso);
+  mvpNetMeso.textContent = `${formatEok(netCostMeso)} (${formatWon(netCostKrw)})`;
+  mvpOffsetRate.textContent = formatPercent(offsetRate);
+  mvpFormula.textContent =
+    `순비용 = 지출 ${formatEok(spendMeso)} - 회수 ${formatEok(recoveredMeso)} - 혜택 ${formatEok(totalBenefitMeso)}. ` +
+    `환산 기준은 현재 최저 경로인 ${best.name}의 ${formatMesoPerWon(best.mesoPerKrw)}입니다.`;
+}
+
 function render() {
   const config = getConfig();
   const routes = calculateRoutes(config);
 
   renderRouteCards(routes, config);
+  renderMvpValue(routes, config);
   renderNotes(routes, config);
 
   updatedLabel.textContent = new Intl.DateTimeFormat("ko-KR", {

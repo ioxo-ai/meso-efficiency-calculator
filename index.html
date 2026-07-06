@@ -148,6 +148,92 @@
           </details>
         </section>
 
+        <section class="mvp-section" aria-labelledby="mvp-title">
+          <div class="section-heading">
+            <div>
+              <h2 id="mvp-title">MVP/VIP 혜택 환산</h2>
+              <p>혜택을 메소 가치로 잡아 순비용을 봅니다.</p>
+            </div>
+          </div>
+
+          <div class="mvp-layout">
+            <article class="mvp-summary">
+              <h3>정리</h3>
+              <ul class="plain-list">
+                <li>KMS 기준 명칭은 VIP보다 MVP에 가깝습니다.</li>
+                <li>13주 누적 기준으로 브론즈 15만, 실버 30만, 골드 60만, 다이아 90만, 레드 150만, 블랙 300만 캐시 구간입니다.</li>
+                <li>주요 혜택은 데일리 기프트, 사우나/잠수 혜택, 퀵패스, 경험치 쿠폰/기상효과, 큐브/환불/마일리지류입니다.</li>
+                <li>환산은 교환 가능 가치, 대체 구매 비용, 시간 절약 가치만 잡는 편이 보수적입니다.</li>
+              </ul>
+            </article>
+
+            <div class="mvp-calculator">
+              <div class="input-grid mvp-inputs">
+                <label class="field" for="mvpSpendKrw">
+                  <span>등급 달성 지출</span>
+                  <span class="input-suffix">
+                    <input id="mvpSpendKrw" type="number" min="0" step="1000" inputmode="numeric" />
+                    <span>원</span>
+                  </span>
+                </label>
+
+                <label class="field" for="mvpRecoveredEok">
+                  <span>캐시상품 회수</span>
+                  <span class="input-suffix">
+                    <input id="mvpRecoveredEok" type="number" min="0" step="0.1" inputmode="decimal" />
+                    <span>억</span>
+                  </span>
+                </label>
+
+                <label class="field" for="mvpDirectBenefitEok">
+                  <span>아이템 혜택 가치</span>
+                  <span class="input-suffix">
+                    <input id="mvpDirectBenefitEok" type="number" min="0" step="0.1" inputmode="decimal" />
+                    <span>억</span>
+                  </span>
+                </label>
+
+                <label class="field" for="mvpHoursSaved">
+                  <span>절약 시간</span>
+                  <span class="input-suffix">
+                    <input id="mvpHoursSaved" type="number" min="0" step="0.5" inputmode="decimal" />
+                    <span>시간</span>
+                  </span>
+                </label>
+
+                <label class="field" for="mvpMesoPerHourEok">
+                  <span>시간당 메소 가치</span>
+                  <span class="input-suffix">
+                    <input id="mvpMesoPerHourEok" type="number" min="0" step="0.1" inputmode="decimal" />
+                    <span>억/h</span>
+                  </span>
+                </label>
+              </div>
+
+              <div class="mvp-results" aria-label="MVP 환산 결과">
+                <article class="mvp-result">
+                  <span>지출 메소 환산</span>
+                  <strong id="mvpSpendMeso">-</strong>
+                </article>
+                <article class="mvp-result">
+                  <span>혜택 총액</span>
+                  <strong id="mvpBenefitMeso">-</strong>
+                </article>
+                <article class="mvp-result">
+                  <span>순비용</span>
+                  <strong id="mvpNetMeso">-</strong>
+                </article>
+                <article class="mvp-result">
+                  <span>상쇄율</span>
+                  <strong id="mvpOffsetRate">-</strong>
+                </article>
+              </div>
+
+              <p class="mvp-formula" id="mvpFormula"></p>
+            </div>
+          </div>
+        </section>
+
         <section class="calculation-section" aria-labelledby="calculation-title">
           <h2 id="calculation-title">계산 기준</h2>
           <div class="notes-grid" id="calculationNotes"></div>
