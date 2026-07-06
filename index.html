@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>메소 효율 계산기</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="workspace" aria-labelledby="app-title">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">MapleStory Meso Route Calculator</p>
+            <h1 id="app-title">메소 효율 계산기</h1>
+            <p class="lead">원화에서 메소까지 가능한 경로를 1억 메소 기준으로 비교합니다.</p>
+          </div>
+          <button class="ghost-button" id="resetButton" type="button">기본값</button>
+        </header>
+
+        <section class="controls" aria-label="계산 입력값">
+          <div class="section-heading">
+            <h2>변동값</h2>
+            <span>* 표시는 시세에 맞춰 바꾸는 값</span>
+          </div>
+
+          <div class="input-grid primary-inputs">
+            <label class="field" for="bankPricePerHundredM">
+              <span>무통장 1억 가격 <strong>*</strong></span>
+              <span class="input-suffix">
+                <input id="bankPricePerHundredM" type="number" min="1" step="1" inputmode="decimal" />
+                <span>원</span>
+              </span>
+            </label>
+
+            <label class="field" for="marketPointPerHundredM">
+              <span>메소마켓 1억 가격 <strong>*</strong></span>
+              <span class="input-suffix">
+                <input id="marketPointPerHundredM" type="number" min="1" step="1" inputmode="decimal" />
+                <span>MP</span>
+              </span>
+            </label>
+
+            <label class="field" for="targetEok">
+              <span>목표 메소</span>
+              <span class="input-suffix">
+                <input id="targetEok" type="number" min="0.01" step="0.1" inputmode="decimal" />
+                <span>억</span>
+              </span>
+            </label>
+          </div>
+
+          <details class="assumptions" open>
+            <summary>세부 가정</summary>
+            <div class="input-grid">
+              <label class="field" for="pcReceiveRate">
+                <span>PC방 수령률</span>
+                <span class="input-suffix">
+                  <input id="pcReceiveRate" type="number" min="0" max="100" step="0.1" inputmode="decimal" />
+                  <span>%</span>
+                </span>
+              </label>
+
+              <label class="field" for="homeReceiveRate">
+                <span>일반 수령률</span>
+                <span class="input-suffix">
+                  <input id="homeReceiveRate" type="number" min="0" max="100" step="0.1" inputmode="decimal" />
+                  <span>%</span>
+                </span>
+              </label>
+
+              <label class="field" for="maplePointKrw">
+                <span>메이플포인트 구매가</span>
+                <span class="input-suffix">
+                  <input id="maplePointKrw" type="number" min="1" step="1" inputmode="decimal" />
+                  <span>원</span>
+                </span>
+              </label>
+
+              <label class="field" for="maplePointAmount">
+                <span>구매 메이플포인트</span>
+                <span class="input-suffix">
+                  <input id="maplePointAmount" type="number" min="1" step="1" inputmode="numeric" />
+                  <span>MP</span>
+                </span>
+              </label>
+
+              <label class="field" for="nexonCashKrw">
+                <span>넥슨캐시 구매가</span>
+                <span class="input-suffix">
+                  <input id="nexonCashKrw" type="number" min="1" step="1" inputmode="decimal" />
+                  <span>원</span>
+                </span>
+              </label>
+
+              <label class="field" for="nexonCashAmount">
+                <span>구매 넥슨캐시</span>
+                <span class="input-suffix">
+                  <input id="nexonCashAmount" type="number" min="1" step="1" inputmode="numeric" />
+                  <span>캐시</span>
+                </span>
+              </label>
+
+              <label class="field" for="bundleCashCost">
+                <span>엘릭서 패키지 가격</span>
+                <span class="input-suffix">
+                  <input id="bundleCashCost" type="number" min="1" step="1" inputmode="numeric" />
+                  <span>캐시</span>
+                </span>
+              </label>
+
+              <label class="field" for="bundleMaplePoint">
+                <span>패키지 지급 포인트</span>
+                <span class="input-suffix">
+                  <input id="bundleMaplePoint" type="number" min="0" step="1" inputmode="numeric" />
+                  <span>MP</span>
+                </span>
+              </label>
+
+              <label class="field" for="elixirCount">
+                <span>패키지 엘릭서</span>
+                <span class="input-suffix">
+                  <input id="elixirCount" type="number" min="0" step="1" inputmode="numeric" />
+                  <span>개</span>
+                </span>
+              </label>
+
+              <label class="field" for="elixirMesoEach">
+                <span>엘릭서 1개 메소</span>
+                <span class="input-suffix">
+                  <input id="elixirMesoEach" type="number" min="0" step="1" inputmode="numeric" />
+                  <span>메소</span>
+                </span>
+              </label>
+            </div>
+          </details>
+        </section>
+
+        <section class="summary-grid" aria-label="효율 요약">
+          <article class="hero-metric">
+            <span class="metric-label">최저 1억 환산가</span>
+            <strong id="bestCost">-</strong>
+            <p id="bestRoute">-</p>
+          </article>
+
+          <article class="metric">
+            <span class="metric-label">목표 구매가</span>
+            <strong id="targetCost">-</strong>
+            <p id="targetRoute">-</p>
+          </article>
+
+          <article class="metric">
+            <span class="metric-label">1만원당 최대 수령</span>
+            <strong id="mesoPerBudget">-</strong>
+            <p id="budgetRoute">-</p>
+          </article>
+        </section>
+
+        <section class="ranking-section" aria-labelledby="ranking-title">
+          <div class="section-heading">
+            <h2 id="ranking-title">경로별 순위</h2>
+            <span id="updatedLabel">실시간 계산</span>
+          </div>
+          <div class="route-list" id="routeList"></div>
+        </section>
+
+        <section class="table-section" aria-labelledby="table-title">
+          <h2 id="table-title">비교표</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>경로</th>
+                  <th>기준 투입</th>
+                  <th>예상 수령</th>
+                  <th>1억 환산가</th>
+                  <th>목표 구매가</th>
+                  <th>최저 대비</th>
+                </tr>
+              </thead>
+              <tbody id="comparisonBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="calculation-section" aria-labelledby="calculation-title">
+          <h2 id="calculation-title">계산 기준</h2>
+          <div class="notes-grid" id="calculationNotes"></div>
+        </section>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
