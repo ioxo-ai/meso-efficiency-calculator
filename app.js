@@ -23,14 +23,7 @@ const inputs = Object.fromEntries(
 );
 
 const resetButton = document.querySelector("#resetButton");
-const bestCost = document.querySelector("#bestCost");
-const bestRoute = document.querySelector("#bestRoute");
-const targetCost = document.querySelector("#targetCost");
-const targetRoute = document.querySelector("#targetRoute");
-const mesoPerBudget = document.querySelector("#mesoPerBudget");
-const budgetRoute = document.querySelector("#budgetRoute");
 const routeList = document.querySelector("#routeList");
-const comparisonBody = document.querySelector("#comparisonBody");
 const calculationNotes = document.querySelector("#calculationNotes");
 const updatedLabel = document.querySelector("#updatedLabel");
 
@@ -190,10 +183,6 @@ function formatEok(meso) {
   })}억`;
 }
 
-function formatMesoPerKrw(value) {
-  return `${Math.round(value).toLocaleString("ko-KR")} 메소/원`;
-}
-
 function getDelta(route, best) {
   if (route.id === best.id) {
     return {
@@ -223,28 +212,31 @@ function makeElement(tag, className, text) {
 function renderRouteCards(routes, config) {
   routeList.replaceChildren();
   const best = routes[0];
+  const targetLabel = `${config.targetEok.toLocaleString("ko-KR")}억 받는 가격`;
 
   routes.forEach((route, index) => {
     const delta = getDelta(route, best);
-    const card = makeElement("article", `route-card ${route.id === best.id ? "is-best" : ""}`);
+    const card = makeElement("article", `compare-card ${route.id === best.id ? "is-best" : ""}`);
 
-    const rank = makeElement("div", "rank-badge", String(index + 1));
-    const body = makeElement("div", "route-body");
-    const heading = makeElement("div", "route-heading");
+    const heading = makeElement("div", "compare-heading");
+    const rank = makeElement("span", "rank-badge", String(index + 1));
     const title = makeElement("h3", "", route.name);
     const group = makeElement("span", "route-group", route.group);
-    const summary = makeElement("p", "route-summary", route.summary);
-    const stats = makeElement("div", "route-stats");
-    const cost = makeStat("1억 환산", formatWon(route.costPerHundredM));
-    const target = makeStat(`${config.targetEok.toLocaleString("ko-KR")}억`, formatWon(route.costPerHundredM * config.targetEok));
-    const budget = makeStat("1만원당", formatEok(route.mesoPerKrw * TEN_THOUSAND_KRW));
-    const deltaBox = makeElement("div", `route-delta ${delta.className}`);
+    const price = makeElement("div", "compare-price");
+    const stats = makeElement("div", "compare-stats");
+    const detail = makeElement("p", "route-summary", route.summary);
 
-    deltaBox.append(makeElement("strong", "", delta.label), makeElement("span", "", delta.detail));
-    heading.append(title, group);
-    stats.append(cost, target, budget);
-    body.append(heading, summary, stats);
-    card.append(rank, body, deltaBox);
+    heading.append(rank, title, group);
+    price.append(
+      makeElement("span", "", targetLabel),
+      makeElement("strong", "", formatWon(route.costPerHundredM * config.targetEok))
+    );
+    stats.append(
+      makeStat("1만원당 수령", formatEok(route.mesoPerKrw * TEN_THOUSAND_KRW)),
+      makeStat("최저 대비", route.id === best.id ? "최저" : delta.label),
+      makeStat("기본 결제 수령", formatEok(route.netMeso))
+    );
+    card.append(heading, price, stats, detail);
     routeList.append(card);
   });
 }
@@ -255,54 +247,24 @@ function makeStat(label, value) {
   return item;
 }
 
-function renderTable(routes, config) {
-  comparisonBody.replaceChildren();
-  const best = routes[0];
-
-  for (const route of routes) {
-    const delta = getDelta(route, best);
-    const row = document.createElement("tr");
-    const targetPrice = route.costPerHundredM * config.targetEok;
-
-    row.append(
-      makeCell(route.name, route.group),
-      makeCell(formatWon(route.krwSpent), "기준 결제액"),
-      makeCell(formatEok(route.netMeso), formatMesoPerKrw(route.mesoPerKrw)),
-      makeCell(formatWon(route.costPerHundredM), "순수령 1억 기준"),
-      makeCell(formatWon(targetPrice), `${config.targetEok.toLocaleString("ko-KR")}억 기준`),
-      makeCell(delta.label, delta.detail, delta.className)
-    );
-
-    comparisonBody.append(row);
-  }
-}
-
-function makeCell(primary, secondary, className = "") {
-  const cell = document.createElement("td");
-  if (className) cell.className = className;
-  cell.append(makeElement("strong", "", primary));
-  if (secondary) cell.append(makeElement("span", "", secondary));
-  return cell;
-}
-
 function renderNotes(routes, config) {
   const byId = Object.fromEntries(routes.map((route) => [route.id, route]));
   const notes = [
     {
       title: "무통장 PC방",
-      body: `${formatWon(config.bankPricePerHundredM)} ÷ ${formatPercent(config.pcReceiveRate)} = ${formatWon(byId["bank-pc"].costPerHundredM)} / 1억`
+      body: `${formatWon(config.bankPricePerHundredM)}로 ${formatEok(byId["bank-pc"].netMeso)} 수령, 실수령 1억 가격 ${formatWon(byId["bank-pc"].costPerHundredM)}`
     },
     {
       title: "무통장 일반",
-      body: `${formatWon(config.bankPricePerHundredM)} ÷ ${formatPercent(config.homeReceiveRate)} = ${formatWon(byId["bank-home"].costPerHundredM)} / 1억`
+      body: `${formatWon(config.bankPricePerHundredM)}로 ${formatEok(byId["bank-home"].netMeso)} 수령, 실수령 1억 가격 ${formatWon(byId["bank-home"].costPerHundredM)}`
     },
     {
       title: "메이플포인트",
-      body: `${formatWon(config.maplePointKrw)} ÷ (${formatPoint(config.maplePointAmount)} ÷ ${formatPoint(config.marketPointPerHundredM)}) = ${formatWon(byId["maple-point"].costPerHundredM)} / 1억`
+      body: `${formatWon(config.maplePointKrw)}로 ${formatEok(byId["maple-point"].netMeso)} 수령, 실수령 1억 가격 ${formatWon(byId["maple-point"].costPerHundredM)}`
     },
     {
       title: "넥슨캐시 패키지",
-      body: `${formatCash(config.nexonCashAmount)} 기준 ${byId["nexon-package"].detail}, ${formatWon(byId["nexon-package"].costPerHundredM)} / 1억`
+      body: `${formatCash(config.nexonCashAmount)} 기준 ${byId["nexon-package"].detail}, 실수령 1억 가격 ${formatWon(byId["nexon-package"].costPerHundredM)}`
     }
   ];
 
@@ -318,20 +280,8 @@ function renderNotes(routes, config) {
 function render() {
   const config = getConfig();
   const routes = calculateRoutes(config);
-  const best = routes[0];
-  const marketBest = routes.find((route) => route.group === "메소마켓");
-
-  bestCost.textContent = formatWon(best.costPerHundredM);
-  bestRoute.textContent = best.name;
-  targetCost.textContent = formatWon(best.costPerHundredM * config.targetEok);
-  targetRoute.textContent = `${config.targetEok.toLocaleString("ko-KR")}억 기준 · ${best.name}`;
-  mesoPerBudget.textContent = formatEok(best.mesoPerKrw * TEN_THOUSAND_KRW);
-  budgetRoute.textContent = marketBest
-    ? `메소마켓 최저 ${formatWon(marketBest.costPerHundredM)} / 1억`
-    : best.name;
 
   renderRouteCards(routes, config);
-  renderTable(routes, config);
   renderNotes(routes, config);
 
   updatedLabel.textContent = new Intl.DateTimeFormat("ko-KR", {
